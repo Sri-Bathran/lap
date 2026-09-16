@@ -59,9 +59,18 @@ html, body, #root {
 body {
   font-family: var(--font-sans);
   font-size: var(--ui-font-size, 13px);
+  color: var(--color-mac-text-1);
   -webkit-font-smoothing: antialiased;
   background: var(--wallpaper, linear-gradient(160deg, #7f1d3f 0%, #3b1f5c 45%, #101a3d 100%));
   overflow: hidden;
+}
+
+/* Form controls don't inherit color/font from ancestors by default in the
+   UA stylesheet — without this, every input/select/textarea renders black
+   text regardless of theme, no matter what color the surrounding page is. */
+input, select, textarea, button {
+  color: inherit;
+  font: inherit;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
