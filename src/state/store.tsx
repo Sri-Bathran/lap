@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { FsNode, PendingChange, Volume } from '../types'
-import { GitHubClient, buildFsTree, collectFiles, findNode, uniqueChildName } from '../lib/github'
+import { GitHubClient, buildFsTree, collectEmptyFolders, collectFiles, findNode, uniqueChildName } from '../lib/github'
 import { fileToBase64 } from '../lib/binary'
 
 const LS_TOKEN_KEY = 'lap.token'
@@ -227,8 +227,12 @@ export function LapProvider({ children }: { children: ReactNode }) {
       for (const p of paths) {
         const node = findNode(tree, p)
         if (!node) continue
-        if (node.type === 'file') blobPaths.push(p)
-        else blobPaths.push(...collectFiles(node).map((f) => f.path))
+        if (node.type === 'file') {
+          blobPaths.push(p)
+        } else {
+          blobPaths.push(...collectFiles(node).map((f) => f.path))
+          blobPaths.push(...collectEmptyFolders(node).map((f) => `${f.path}/.gitkeep`))
+        }
       }
       if (blobPaths.length === 0) return
       await client.deletePaths(activeVolume, blobPaths, `Delete ${paths.join(', ')}`)
@@ -237,6 +241,13 @@ export function LapProvider({ children }: { children: ReactNode }) {
     [client, activeVolume, tree, refreshTree],
   )
 
+  // Each of rename/move/copy below builds one combined PendingChange list —
+  // real files (which carry a sha to preserve) plus every empty folder
+  // anywhere in the subtree (which only exist on GitHub as a .gitkeep blob
+  // that collectFiles() never surfaces, so it has to be tracked separately
+  // via collectEmptyFolders — otherwise an empty subfolder gets silently
+  // left behind) — and send it all as a single commit.
+
   const renameNode = useCallback(
     async (nodePath: string, newName: string) => {
       if (!client || !activeVolume || !tree) return
@@ -244,19 +255,23 @@ export function LapProvider({ children }: { children: ReactNode }) {
       if (!node) return
       const parentPath = nodePath.includes('/') ? nodePath.slice(0, nodePath.lastIndexOf('/')) : ''
       const newPath = parentPath ? `${parentPath}/${newName}` : newName
-      const files = node.type === 'file' ? [node] : collectFiles(node)
-      const moves = files.map((f) => ({
-        fromPath: f.path,
-        toPath: newPath + f.path.slice(nodePath.length),
-        sha: f.sha!,
-      }))
-      if (moves.length > 0) {
-        await client.moveEntries(activeVolume, moves, `Rename ${nodePath} -> ${newPath}`)
-      } else {
-        // empty folder — recreate its placeholder at the new path, drop the old one
-        await client.createFolder(activeVolume, newPath)
-        await client.deletePaths(activeVolume, [`${nodePath}/.gitkeep`], `Rename ${nodePath} -> ${newPath}`)
+      const changes: PendingChange[] = []
+      for (const f of node.type === 'file' ? [node] : collectFiles(node)) {
+        changes.push({ path: f.path, sha: null })
+        changes.push({ path: newPath + f.path.slice(nodePath.length), sha: f.sha! })
       }
+      if (node.type === 'folder') {
+        const emptyFolders = collectEmptyFolders(node)
+        if (emptyFolders.length > 0) {
+          const sha = await client.createBlob(activeVolume, '')
+          for (const ef of emptyFolders) {
+            changes.push({ path: `${ef.path}/.gitkeep`, sha: null })
+            changes.push({ path: `${newPath}${ef.path.slice(nodePath.length)}/.gitkeep`, sha })
+          }
+        }
+      }
+      if (changes.length === 0) return
+      await client.commitChanges(activeVolume, changes, `Rename ${nodePath} -> ${newPath}`)
       await refreshTree()
     },
     [client, activeVolume, tree, refreshTree],
@@ -265,38 +280,30 @@ export function LapProvider({ children }: { children: ReactNode }) {
   const moveNodes = useCallback(
     async (paths: string[], destFolderPath: string) => {
       if (!client || !activeVolume || !tree) return
-      const allMoves: { fromPath: string; toPath: string; sha: string }[] = []
-      const emptyFolderMoves: { from: string; to: string }[] = []
+      const changes: PendingChange[] = []
+      let emptyBlobSha: string | null = null
       for (const p of paths) {
         const node = findNode(tree, p)
         if (!node) continue
-        const name = node.name
-        const newBase = destFolderPath ? `${destFolderPath}/${name}` : name
+        const newBase = destFolderPath ? `${destFolderPath}/${node.name}` : node.name
         if (newBase === p) continue // no-op, dropped on itself
         if (node.type === 'folder' && (destFolderPath === p || destFolderPath.startsWith(`${p}/`))) {
           continue // can't move a folder into its own descendant
         }
-        const files = node.type === 'file' ? [node] : collectFiles(node)
-        if (node.type === 'folder' && files.length === 0) {
-          emptyFolderMoves.push({ from: p, to: newBase })
-          continue
+        for (const f of node.type === 'file' ? [node] : collectFiles(node)) {
+          changes.push({ path: f.path, sha: null })
+          changes.push({ path: newBase + f.path.slice(p.length), sha: f.sha! })
         }
-        for (const f of files) {
-          allMoves.push({
-            fromPath: f.path,
-            toPath: newBase + f.path.slice(p.length),
-            sha: f.sha!,
-          })
+        if (node.type === 'folder') {
+          for (const ef of collectEmptyFolders(node)) {
+            if (!emptyBlobSha) emptyBlobSha = await client.createBlob(activeVolume, '')
+            changes.push({ path: `${ef.path}/.gitkeep`, sha: null })
+            changes.push({ path: `${newBase}${ef.path.slice(p.length)}/.gitkeep`, sha: emptyBlobSha })
+          }
         }
       }
-      if (allMoves.length > 0) {
-        await client.moveEntries(activeVolume, allMoves, `Move ${paths.length} item(s) to ${destFolderPath || '/'}`)
-      }
-      for (const ef of emptyFolderMoves) {
-        await client.createFolder(activeVolume, ef.to)
-        await client.deletePaths(activeVolume, [`${ef.from}/.gitkeep`], `Move ${ef.from} -> ${ef.to}`)
-      }
-      if (allMoves.length === 0 && emptyFolderMoves.length === 0) return
+      if (changes.length === 0) return
+      await client.commitChanges(activeVolume, changes, `Move ${paths.length} item(s) to ${destFolderPath || '/'}`)
       await refreshTree()
     },
     [client, activeVolume, tree, refreshTree],
@@ -309,9 +316,6 @@ export function LapProvider({ children }: { children: ReactNode }) {
       if (!client || !activeVolume || !tree) return
       const destNode = findNode(tree, destFolderPath)
       const changes: PendingChange[] = []
-      // Lazily created once, on demand: EMPTY_BLOB_SHA is deterministic but
-      // not guaranteed to already exist as an object in this repo — see the
-      // same note in GitHubClient.createFolder.
       let emptyBlobSha: string | null = null
       for (const p of paths) {
         const node = findNode(tree, p)
@@ -321,14 +325,14 @@ export function LapProvider({ children }: { children: ReactNode }) {
         }
         const targetName = uniqueChildName(destNode, node.name)
         const newBase = destFolderPath ? `${destFolderPath}/${targetName}` : targetName
-        const files = node.type === 'file' ? [node] : collectFiles(node)
-        if (node.type === 'folder' && files.length === 0) {
-          if (!emptyBlobSha) emptyBlobSha = await client.createBlob(activeVolume, '')
-          changes.push({ path: `${newBase}/.gitkeep`, sha: emptyBlobSha })
-          continue
-        }
-        for (const f of files) {
+        for (const f of node.type === 'file' ? [node] : collectFiles(node)) {
           changes.push({ path: newBase + f.path.slice(p.length), sha: f.sha! })
+        }
+        if (node.type === 'folder') {
+          for (const ef of collectEmptyFolders(node)) {
+            if (!emptyBlobSha) emptyBlobSha = await client.createBlob(activeVolume, '')
+            changes.push({ path: `${newBase}${ef.path.slice(p.length)}/.gitkeep`, sha: emptyBlobSha })
+          }
         }
       }
       if (changes.length === 0) return

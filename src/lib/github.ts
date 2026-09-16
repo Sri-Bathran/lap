@@ -180,20 +180,6 @@ export class GitHubClient {
       message,
     )
   }
-
-  /** Moves/renames a set of (blob path -> sha) entries in one commit — no re-upload. */
-  async moveEntries(
-    v: Volume,
-    moves: { fromPath: string; toPath: string; sha: string }[],
-    message: string,
-  ): Promise<void> {
-    const changes: PendingChange[] = []
-    for (const m of moves) {
-      changes.push({ path: m.fromPath, sha: null })
-      changes.push({ path: m.toPath, sha: m.sha })
-    }
-    await this.commitChanges(v, changes, message)
-  }
 }
 
 // ---- Tree building ----------------------------------------------------
@@ -264,6 +250,22 @@ export function collectFiles(node: FsNode): FsNode[] {
   }
   walk(node)
   return out
+}
+
+/**
+ * Every folder in this subtree (including the node itself) that currently
+ * has no children — each one exists on GitHub only as a `.gitkeep`
+ * placeholder blob, a path collectFiles() never surfaces since buildFsTree
+ * deliberately hides that file from the visible tree. Any operation that
+ * only walks collectFiles() silently drops empty folders: deleting one
+ * does nothing, and moving/copying/renaming a folder that contains an
+ * empty subfolder leaves that subfolder behind as an orphan.
+ */
+export function collectEmptyFolders(node: FsNode): FsNode[] {
+  if (node.type === 'file') return []
+  const children = [...(node.children?.values() ?? [])]
+  if (children.length === 0) return [node]
+  return children.flatMap(collectEmptyFolders)
 }
 
 /** True size of a node — a file's own size, or a folder's total recursive size. */
