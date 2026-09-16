@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { FsNode, PendingChange, Volume } from '../types'
-import { EMPTY_BLOB_SHA, GitHubClient, buildFsTree, collectFiles, findNode, uniqueChildName } from '../lib/github'
+import { GitHubClient, buildFsTree, collectFiles, findNode, uniqueChildName } from '../lib/github'
 import { fileToBase64 } from '../lib/binary'
 
 const LS_TOKEN_KEY = 'lap.token'
@@ -309,6 +309,10 @@ export function LapProvider({ children }: { children: ReactNode }) {
       if (!client || !activeVolume || !tree) return
       const destNode = findNode(tree, destFolderPath)
       const changes: PendingChange[] = []
+      // Lazily created once, on demand: EMPTY_BLOB_SHA is deterministic but
+      // not guaranteed to already exist as an object in this repo — see the
+      // same note in GitHubClient.createFolder.
+      let emptyBlobSha: string | null = null
       for (const p of paths) {
         const node = findNode(tree, p)
         if (!node) continue
@@ -319,7 +323,8 @@ export function LapProvider({ children }: { children: ReactNode }) {
         const newBase = destFolderPath ? `${destFolderPath}/${targetName}` : targetName
         const files = node.type === 'file' ? [node] : collectFiles(node)
         if (node.type === 'folder' && files.length === 0) {
-          changes.push({ path: `${newBase}/.gitkeep`, sha: EMPTY_BLOB_SHA })
+          if (!emptyBlobSha) emptyBlobSha = await client.createBlob(activeVolume, '')
+          changes.push({ path: `${newBase}/.gitkeep`, sha: emptyBlobSha })
           continue
         }
         for (const f of files) {

@@ -9,10 +9,6 @@ import type { FsNode, PendingChange, RawTreeEntry, Volume } from '../types'
 
 const API = 'https://api.github.com'
 
-// Git's well-known sha for an empty blob — used for folder placeholder
-// files (.gitkeep) so we never need an extra API call to create one.
-export const EMPTY_BLOB_SHA = 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'
-
 export class GitHubError extends Error {
   status: number
   constructor(status: number, message: string) {
@@ -168,7 +164,13 @@ export class GitHubClient {
   }
 
   async createFolder(v: Volume, path: string): Promise<void> {
-    await this.commitChanges(v, [{ path: `${path}/.gitkeep`, sha: EMPTY_BLOB_SHA }], `Create folder ${path}`)
+    // EMPTY_BLOB_SHA is deterministic (git hashes empty content the same
+    // way everywhere), but that doesn't mean the object already exists in
+    // THIS repo's store — a fresh repo has never created it, and GitHub
+    // rejects a tree entry pointing at a blob sha it doesn't have. Creating
+    // it here is idempotent: it returns that same well-known sha either way.
+    const sha = await this.createBlob(v, '')
+    await this.commitChanges(v, [{ path: `${path}/.gitkeep`, sha }], `Create folder ${path}`)
   }
 
   async deletePaths(v: Volume, paths: string[], message: string): Promise<void> {
