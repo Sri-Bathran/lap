@@ -96,7 +96,7 @@ export default function Finder() {
 
   if (!lap.activeVolume) {
     return (
-      <div className="flex h-full flex-1 items-center justify-center text-sm text-gray-400">
+      <div className="flex h-full flex-1 items-center justify-center text-sm text-mac-text-5">
         Select or mount a volume from the sidebar to get started.
       </div>
     )
@@ -267,18 +267,18 @@ export default function Finder() {
   return (
     <div className="flex h-full flex-1 flex-col" onContextMenu={paneContextMenu}>
       {/* Toolbar */}
-      <div className="flex items-center gap-1.5 border-b border-black/10 bg-white/50 px-3 py-2">
-        <button onClick={() => lap.refreshTree()} className="rounded-md p-1.5 text-gray-600 hover:bg-black/5" title="Refresh">
+      <div className="flex items-center gap-1.5 border-b border-mac-divider bg-mac-surface-2 px-3 py-2">
+        <button onClick={() => lap.refreshTree()} className="rounded-md p-1.5 text-mac-text-3 hover:bg-mac-surface-hover" title="Refresh">
           <RotateCw size={15} />
         </button>
-        <div className="mx-1 h-4 w-px bg-black/10" />
-        <button onClick={handleNewFolder} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-black/5" title="New Folder">
+        <div className="mx-1 h-4 w-px bg-mac-divider-soft" />
+        <button onClick={handleNewFolder} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-mac-text-3 hover:bg-mac-surface-hover" title="New Folder">
           <FolderPlus size={15} /> Folder
         </button>
-        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-black/5" title="Upload files">
+        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-mac-text-3 hover:bg-mac-surface-hover" title="Upload files">
           <Upload size={15} /> Upload
         </button>
-        <button onClick={() => folderInputRef.current?.click()} className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-black/5" title="Upload a whole folder">
+        <button onClick={() => folderInputRef.current?.click()} className="rounded-md px-2 py-1 text-xs font-medium text-mac-text-3 hover:bg-mac-surface-hover" title="Upload a whole folder">
           Upload folder
         </button>
         <input
@@ -292,11 +292,11 @@ export default function Finder() {
           onChange={(e) => { handleUploadFiles(e.target.files); e.currentTarget.value = '' }}
         />
 
-        <div className="mx-1 h-4 w-px bg-black/10" />
+        <div className="mx-1 h-4 w-px bg-mac-divider-soft" />
         <button
           disabled={selectedNodes.length === 0}
           onClick={() => lap.copyToClipboard(selectedNodes.map((n) => n.path))}
-          className="flex items-center gap-1 rounded-md p-1.5 text-gray-600 hover:bg-black/5 disabled:opacity-30"
+          className="flex items-center gap-1 rounded-md p-1.5 text-mac-text-3 hover:bg-mac-surface-hover disabled:opacity-30"
           title="Copy (Ctrl/Cmd+C)"
         >
           <Copy size={15} />
@@ -304,7 +304,7 @@ export default function Finder() {
         <button
           disabled={selectedNodes.length === 0}
           onClick={() => lap.cutToClipboard(selectedNodes.map((n) => n.path))}
-          className="flex items-center gap-1 rounded-md p-1.5 text-gray-600 hover:bg-black/5 disabled:opacity-30"
+          className="flex items-center gap-1 rounded-md p-1.5 text-mac-text-3 hover:bg-mac-surface-hover disabled:opacity-30"
           title="Cut (Ctrl/Cmd+X)"
         >
           <Scissors size={15} />
@@ -312,17 +312,17 @@ export default function Finder() {
         <button
           disabled={!canPaste}
           onClick={() => lap.pasteFromClipboard()}
-          className="flex items-center gap-1 rounded-md p-1.5 text-gray-600 hover:bg-black/5 disabled:opacity-30"
+          className="flex items-center gap-1 rounded-md p-1.5 text-mac-text-3 hover:bg-mac-surface-hover disabled:opacity-30"
           title="Paste (Ctrl/Cmd+V)"
         >
           <ClipboardPaste size={15} />
         </button>
 
-        <div className="mx-1 h-4 w-px bg-black/10" />
+        <div className="mx-1 h-4 w-px bg-mac-divider-soft" />
         <button
           disabled={selectedNodes.length === 0}
           onClick={() => handleDownload(selectedNodes)}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-black/5 disabled:opacity-30"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-mac-text-3 hover:bg-mac-surface-hover disabled:opacity-30"
           title="Download selection"
         >
           <Download size={15} /> Download
@@ -330,33 +330,33 @@ export default function Finder() {
         <button
           disabled={selectedNodes.length === 0}
           onClick={() => handleDelete(selectedNodes.map((n) => n.path))}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 disabled:opacity-30"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-mac-danger hover:bg-mac-danger-hover disabled:opacity-30"
           title="Delete selection"
         >
           <Trash2 size={15} />
         </button>
 
         <div className="flex-1" />
-        <button onClick={() => setView('grid')} className={`rounded-md p-1.5 ${view === 'grid' ? 'bg-black/10' : 'text-gray-500 hover:bg-black/5'}`}>
+        <button onClick={() => setView('grid')} className={`rounded-md p-1.5 ${view === 'grid' ? 'bg-mac-divider-soft' : 'text-mac-text-4 hover:bg-mac-surface-hover'}`}>
           <Grid3x3 size={15} />
         </button>
-        <button onClick={() => setView('list')} className={`rounded-md p-1.5 ${view === 'list' ? 'bg-black/10' : 'text-gray-500 hover:bg-black/5'}`}>
+        <button onClick={() => setView('list')} className={`rounded-md p-1.5 ${view === 'list' ? 'bg-mac-divider-soft' : 'text-mac-text-4 hover:bg-mac-surface-hover'}`}>
           <ListIcon size={15} />
         </button>
       </div>
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1 border-b border-black/10 bg-white/30 px-3 py-1.5 text-[12.5px]">
+      <div className="flex items-center gap-1 border-b border-mac-divider bg-mac-surface-3 px-3 py-1.5 text-[12.5px]">
         {crumbs.map((c, i) => (
           <span key={c.path} className="flex items-center gap-1">
-            {i > 0 && <ChevronRight size={12} className="text-gray-400" />}
+            {i > 0 && <ChevronRight size={12} className="text-mac-text-5" />}
             <button
               onClick={() => lap.navigate(c.path)}
               onDragOver={(e) => { e.preventDefault(); setDragOverPath(c.path) }}
               onDragLeave={() => setDragOverPath((p) => (p === c.path ? null : p))}
               onDrop={(e) => onDropOnFolder(e, c.path)}
               className={`rounded px-1.5 py-0.5 font-medium ${
-                i === crumbs.length - 1 ? 'text-gray-800' : 'text-mac-accent hover:bg-black/5'
+                i === crumbs.length - 1 ? 'text-mac-text-1' : 'text-mac-accent hover:bg-mac-surface-hover'
               } ${dragOverPath === c.path ? 'drag-over-target' : ''}`}
             >
               {c.label}
@@ -372,13 +372,13 @@ export default function Finder() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => onDropOnFolder(e, lap.path)}
       >
-        {lap.loadingTree && <div className="p-8 text-center text-sm text-gray-400">Loading volume…</div>}
+        {lap.loadingTree && <div className="p-8 text-center text-sm text-mac-text-5">Loading volume…</div>}
         {uploadBusy && (
           <div className="mb-3 rounded-lg bg-mac-accent/10 px-3 py-2 text-xs text-mac-accent">{uploadBusy}</div>
         )}
 
         {!lap.loadingTree && items.length === 0 && (
-          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+          <div className="flex h-full items-center justify-center text-sm text-mac-text-5">
             This folder is empty. Drag files here, or use Upload.
           </div>
         )}
@@ -413,7 +413,7 @@ export default function Finder() {
                     className="w-full rounded border border-mac-accent px-1 text-center text-[11px] outline-none"
                   />
                 ) : (
-                  <span className="line-clamp-2 w-full break-words text-[11px] leading-tight text-gray-700">{node.name}</span>
+                  <span className="line-clamp-2 w-full break-words text-[11px] leading-tight text-mac-text-2">{node.name}</span>
                 )}
               </div>
             ))}
@@ -421,7 +421,7 @@ export default function Finder() {
         ) : (
           <table className="w-full text-left text-[12.5px]">
             <thead>
-              <tr className="text-[11px] uppercase text-gray-400">
+              <tr className="text-[11px] uppercase text-mac-text-5">
                 <th className="pb-2 font-medium">Name</th>
                 <th className="pb-2 font-medium">Size</th>
               </tr>
@@ -444,7 +444,7 @@ export default function Finder() {
                     <FileIcon name={node.name} type={node.type} size={18} />
                     {node.name}
                   </td>
-                  <td className="py-1.5 text-gray-400" title={`${nodeSize(node).toLocaleString()} bytes`}>
+                  <td className="py-1.5 text-mac-text-5" title={`${nodeSize(node).toLocaleString()} bytes`}>
                     {formatBytes(nodeSize(node))}
                   </td>
                 </tr>
@@ -455,7 +455,7 @@ export default function Finder() {
       </div>
 
       {/* Status bar */}
-      <div className="border-t border-black/10 bg-white/40 px-3 py-1 text-[11px] text-gray-500">
+      <div className="border-t border-mac-divider bg-mac-surface-3 px-3 py-1 text-[11px] text-mac-text-4">
         {items.length} item{items.length === 1 ? '' : 's'}
         {selectedNodes.length > 0 && ` · ${selectedNodes.length} selected (${formatBytes(selectedSize)})`}
         {totalSize > 0 && ` · ${formatBytes(totalSize)} total`}

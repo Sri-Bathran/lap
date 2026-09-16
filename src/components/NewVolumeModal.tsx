@@ -38,24 +38,24 @@ export default function NewVolumeModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="animate-pop-in w-[420px] rounded-2xl bg-white p-5 shadow-2xl">
+      <div className="animate-pop-in w-[420px] rounded-2xl bg-mac-surface-solid p-5 shadow-2xl">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-800">Mount a volume</h2>
-          <button onClick={onClose} className="rounded-md p-1 text-gray-400 hover:bg-gray-100">
+          <h2 className="text-base font-semibold text-mac-text-1">Mount a volume</h2>
+          <button onClick={onClose} className="rounded-md p-1 text-mac-text-5 hover:bg-mac-surface-hover">
             <X size={16} />
           </button>
         </div>
 
-        <div className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 text-xs">
+        <div className="mb-4 flex gap-1 rounded-lg bg-mac-surface-muted p-1 text-xs">
           <button
             onClick={() => setTab('create')}
-            className={`flex-1 rounded-md py-1.5 font-medium ${tab === 'create' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 rounded-md py-1.5 font-medium ${tab === 'create' ? 'bg-mac-surface-solid shadow-sm' : 'text-mac-text-4'}`}
           >
             New volume
           </button>
           <button
             onClick={() => setTab('attach')}
-            className={`flex-1 rounded-md py-1.5 font-medium ${tab === 'attach' ? 'bg-white shadow-sm' : 'text-gray-500'}`}
+            className={`flex-1 rounded-md py-1.5 font-medium ${tab === 'attach' ? 'bg-mac-surface-solid shadow-sm' : 'text-mac-text-4'}`}
           >
             Attach existing repo
           </button>
@@ -63,18 +63,18 @@ export default function NewVolumeModal({ onClose }: { onClose: () => void }) {
 
         {tab === 'create' ? (
           <form onSubmit={handleCreate}>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Volume name</label>
+            <label className="mb-1 block text-xs font-medium text-mac-text-3">Volume name</label>
             <input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="lap-vol-personal"
-              className="mb-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-mac-accent focus:ring-2 focus:ring-mac-accent/20"
+              className="mb-1 w-full rounded-lg border border-mac-border-input px-3 py-2 text-sm outline-none focus:border-mac-accent focus:ring-2 focus:ring-mac-accent/20"
             />
-            <p className="mb-3 text-[11px] text-gray-400">
+            <p className="mb-3 text-[11px] text-mac-text-5">
               Creates a new <strong>private</strong> GitHub repo and mounts it as a drive. Keep each volume under ~5GB — spin up another when one fills up.
             </p>
-            {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>}
+            {error && <div className="mb-3 rounded-lg bg-mac-danger-bg px-3 py-2 text-xs text-mac-danger">{error}</div>}
             <button
               type="submit"
               disabled={busy}
@@ -85,10 +85,10 @@ export default function NewVolumeModal({ onClose }: { onClose: () => void }) {
           </form>
         ) : (
           <div>
-            {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>}
+            {error && <div className="mb-3 rounded-lg bg-mac-danger-bg px-3 py-2 text-xs text-mac-danger">{error}</div>}
             <div className="max-h-64 space-y-1 overflow-y-auto">
-              {existing === null && <div className="py-6 text-center text-xs text-gray-400">Loading your repos…</div>}
-              {existing?.length === 0 && <div className="py-6 text-center text-xs text-gray-400">No private repos found.</div>}
+              {existing === null && <div className="py-6 text-center text-xs text-mac-text-5">Loading your repos…</div>}
+              {existing?.length === 0 && <div className="py-6 text-center text-xs text-mac-text-5">No private repos found.</div>}
               {existing?.map((r) => {
                 const already = lap.volumes.some((v) => v.owner === r.owner.login && v.repo === r.name)
                 return (
@@ -96,10 +96,10 @@ export default function NewVolumeModal({ onClose }: { onClose: () => void }) {
                     key={`${r.owner.login}/${r.name}`}
                     disabled={already}
                     onClick={() => attach(r.owner.login, r.name, r.default_branch)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-40"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-mac-surface-hover disabled:opacity-40"
                   >
                     <span className="truncate">{r.owner.login}/{r.name}</span>
-                    {already && <span className="text-[10px] text-gray-400">mounted</span>}
+                    {already && <span className="text-[10px] text-mac-text-5">mounted</span>}
                   </button>
                 )
               })}

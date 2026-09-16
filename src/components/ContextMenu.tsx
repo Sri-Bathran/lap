@@ -35,7 +35,7 @@ export default function ContextMenu({
     <div
       ref={ref}
       style={{ left: clampedX, top: clampedY }}
-      className="animate-pop-in fixed z-50 min-w-[190px] rounded-xl bg-white/95 py-1.5 shadow-2xl ring-1 ring-black/10 backdrop-blur"
+      className="animate-pop-in fixed z-50 min-w-[190px] rounded-xl bg-mac-surface-card py-1.5 shadow-2xl ring-1 ring-mac-divider backdrop-blur"
     >
       {items.map((item, i) => (
         <div key={i}>
@@ -46,12 +46,12 @@ export default function ContextMenu({
               onClose()
             }}
             className={`block w-full px-3.5 py-1.5 text-left text-[13px] disabled:opacity-30 ${
-              item.danger ? 'text-red-500 hover:bg-red-50' : 'text-gray-700 hover:bg-mac-accent hover:text-white'
+              item.danger ? 'text-mac-danger hover:bg-mac-danger-hover' : 'text-mac-text-2 hover:bg-mac-accent hover:text-white'
             }`}
           >
             {item.label}
           </button>
-          {item.separatorAfter && <div className="my-1 h-px bg-gray-200" />}
+          {item.separatorAfter && <div className="my-1 h-px bg-mac-divider-soft" />}
         </div>
       ))}
     </div>

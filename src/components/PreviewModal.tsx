@@ -23,7 +23,9 @@ import xml from 'highlight.js/lib/languages/xml'
 import css from 'highlight.js/lib/languages/css'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
 import ini from 'highlight.js/lib/languages/ini'
-import 'highlight.js/styles/xcode.css'
+// Code preview stays dark always (VS Code-like), independent of the app's
+// own light/dark toggle — a dark code pane reads best either way.
+import 'highlight.js/styles/atom-one-dark.css'
 
 hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('typescript', typescript)
@@ -131,29 +133,29 @@ export default function PreviewModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="animate-pop-in flex max-h-[85vh] w-[min(900px,90vw)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-2.5">
+      <div className="animate-pop-in flex max-h-[85vh] w-[min(900px,90vw)] flex-col overflow-hidden rounded-2xl bg-mac-surface-solid shadow-2xl">
+        <div className="flex items-center justify-between border-b border-mac-divider px-4 py-2.5">
           <div className="min-w-0">
-            <div className="truncate text-sm font-medium text-gray-800">{node.name}</div>
-            <div className="text-[11px] text-gray-400">{node.size != null ? formatBytes(node.size) : ''}</div>
+            <div className="truncate text-sm font-medium text-mac-text-1">{node.name}</div>
+            <div className="text-[11px] text-mac-text-5">{node.size != null ? formatBytes(node.size) : ''}</div>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => downloadFile(client, volume, node)}
               title="Download"
-              className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
+              className="rounded-md p-1.5 text-mac-text-4 hover:bg-mac-surface-hover"
             >
               <Download size={16} />
             </button>
-            <button onClick={onClose} title="Close" className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100">
+            <button onClick={onClose} title="Close" className="rounded-md p-1.5 text-mac-text-4 hover:bg-mac-surface-hover">
               <X size={16} />
             </button>
           </div>
         </div>
 
-        <div className="overflow-auto bg-gray-50 p-0">
-          {loading && <div className="p-8 text-center text-sm text-gray-400">Loading…</div>}
-          {error && <div className="p-8 text-center text-sm text-red-500">{error}</div>}
+        <div className="overflow-auto bg-mac-surface-row p-0">
+          {loading && <div className="p-8 text-center text-sm text-mac-text-5">Loading…</div>}
+          {error && <div className="p-8 text-center text-sm text-mac-danger">{error}</div>}
 
           {!loading && !error && kind === 'image' && dataUrl && (
             <div className="flex items-center justify-center bg-[repeating-conic-gradient(#eee_0%_25%,white_0%_50%)] bg-[length:16px_16px] p-6">
@@ -167,14 +169,14 @@ export default function PreviewModal({
 
           {!loading && !error && kind === 'markdown' && markdownHtml && (
             <div
-              className="prose prose-sm max-w-none bg-white p-6"
+              className="md-preview bg-mac-surface-solid p-6"
               // sanitized above via DOMPurify
               dangerouslySetInnerHTML={{ __html: markdownHtml }}
             />
           )}
 
           {!loading && !error && kind === 'code' && content != null && (
-            <pre className="m-0 overflow-auto bg-white p-4 text-[12.5px] leading-relaxed">
+            <pre className="m-0 overflow-auto bg-[#282c34] p-4 text-[12.5px] leading-relaxed">
               <code
                 className="hljs"
                 dangerouslySetInnerHTML={highlighted ? { __html: highlighted } : undefined}
@@ -185,7 +187,7 @@ export default function PreviewModal({
           )}
 
           {!loading && !error && kind === 'unsupported' && (
-            <div className="p-10 text-center text-sm text-gray-400">
+            <div className="p-10 text-center text-sm text-mac-text-5">
               No preview available for this file type.
               <div className="mt-3">
                 <button

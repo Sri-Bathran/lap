@@ -1,11 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-  --color-mac-bg: #eceef1;
-  --color-mac-sidebar: #e8e8ec;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
   --color-mac-accent: #0a84ff;
-  --color-mac-border: #d3d5da;
+  --color-mac-danger: #ff453a;
+  --color-mac-danger-bg: #fef2f2;
+  --color-mac-danger-hover: #fee2e2;
+  --color-mac-warn-bg: #fffbeb;
+  --color-mac-warn-text: #b45309;
+  --color-mac-surface-1: rgba(255, 255, 255, 0.72);
+  --color-mac-surface-2: rgba(255, 255, 255, 0.5);
+  --color-mac-surface-3: rgba(255, 255, 255, 0.38);
+  --color-mac-surface-card: rgba(255, 255, 255, 0.94);
+  --color-mac-surface-solid: #ffffff;
+  --color-mac-surface-muted: #f3f4f6;
+  --color-mac-surface-row: #f9fafb;
+  --color-mac-surface-hover: rgba(0, 0, 0, 0.05);
+  --color-mac-divider: rgba(0, 0, 0, 0.1);
+  --color-mac-divider-soft: #e5e7eb;
+  --color-mac-border-input: #d1d5db;
+  --color-mac-text-1: #1f2937;
+  --color-mac-text-2: #374151;
+  --color-mac-text-3: #4b5563;
+  --color-mac-text-4: #6b7280;
+  --color-mac-text-5: #9ca3af;
+}
+
+/* Dark mode is an explicit in-app toggle (Settings), not the OS preference —
+   so it's keyed off a data attribute we set ourselves, applied by theme.tsx. */
+:root[data-theme="dark"] {
+  --color-mac-danger-bg: rgba(239, 68, 68, 0.14);
+  --color-mac-danger-hover: rgba(239, 68, 68, 0.22);
+  --color-mac-warn-bg: rgba(245, 158, 11, 0.14);
+  --color-mac-warn-text: #fbbf24;
+  --color-mac-surface-1: rgba(30, 30, 36, 0.72);
+  --color-mac-surface-2: rgba(30, 30, 36, 0.56);
+  --color-mac-surface-3: rgba(30, 30, 36, 0.44);
+  --color-mac-surface-card: rgba(30, 30, 36, 0.92);
+  --color-mac-surface-solid: #1e1e24;
+  --color-mac-surface-muted: #2a2a33;
+  --color-mac-surface-row: #26262e;
+  --color-mac-surface-hover: rgba(255, 255, 255, 0.07);
+  --color-mac-divider: rgba(255, 255, 255, 0.1);
+  --color-mac-divider-soft: rgba(255, 255, 255, 0.12);
+  --color-mac-border-input: #45454f;
+  --color-mac-text-1: #f3f4f6;
+  --color-mac-text-2: #e5e7eb;
+  --color-mac-text-3: #cbd5e1;
+  --color-mac-text-4: #9ca3af;
+  --color-mac-text-5: #71717a;
 }
 
 html, body, #root {
@@ -15,14 +58,14 @@ html, body, #root {
 
 body {
   font-family: var(--font-sans);
-  font-size: var(--ui-font-size, 14px);
+  font-size: var(--ui-font-size, 13px);
   -webkit-font-smoothing: antialiased;
-  background: var(--wallpaper, linear-gradient(160deg, #6f9fd8 0%, #4d6fa6 45%, #33477a 100%));
+  background: var(--wallpaper, linear-gradient(160deg, #7f1d3f 0%, #3b1f5c 45%, #101a3d 100%));
   overflow: hidden;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb { background: rgba(128,128,140,0.35); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 .traffic-dot { width: 12px; height: 12px; border-radius: 999px; }
@@ -45,7 +88,7 @@ body {
   outline: 1px solid color-mix(in srgb, var(--color-mac-accent) 50%, transparent);
 }
 .icon-tile:hover:not(.selected) {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--color-mac-surface-hover);
 }
 .icon-tile.cut {
   opacity: 0.45;
@@ -56,3 +99,33 @@ body {
   outline-offset: -2px;
   background: color-mix(in srgb, var(--color-mac-accent) 12%, transparent);
 }
+
+/* Minimal Markdown preview styling (no Tailwind Typography plugin —
+   kept dependency-free and naturally theme-aware via our own tokens). */
+.md-preview { color: var(--color-mac-text-1); line-height: 1.65; font-size: 14px; }
+.md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4 {
+  font-weight: 600; color: var(--color-mac-text-1); margin: 1.2em 0 0.5em;
+}
+.md-preview h1 { font-size: 1.6em; }
+.md-preview h2 { font-size: 1.35em; }
+.md-preview h3 { font-size: 1.15em; }
+.md-preview p, .md-preview ul, .md-preview ol, .md-preview blockquote, .md-preview table { margin: 0.75em 0; }
+.md-preview ul, .md-preview ol { padding-left: 1.5em; }
+.md-preview li { margin: 0.25em 0; }
+.md-preview a { color: var(--color-mac-accent); text-decoration: underline; }
+.md-preview code {
+  background: var(--color-mac-surface-muted); color: var(--color-mac-text-1);
+  padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em;
+  font-family: ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
+}
+.md-preview pre {
+  background: #282c34; color: #abb2bf; padding: 1em; border-radius: 8px; overflow-x: auto;
+}
+.md-preview pre code { background: none; color: inherit; padding: 0; }
+.md-preview blockquote {
+  border-left: 3px solid var(--color-mac-divider-soft); padding-left: 1em; color: var(--color-mac-text-3);
+}
+.md-preview hr { border: none; border-top: 1px solid var(--color-mac-divider); margin: 1.5em 0; }
+.md-preview table { border-collapse: collapse; width: 100%; }
+.md-preview th, .md-preview td { border: 1px solid var(--color-mac-divider); padding: 0.4em 0.7em; text-align: left; }
+.md-preview img { max-width: 100%; border-radius: 6px; }
