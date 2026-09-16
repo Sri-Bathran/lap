@@ -465,7 +465,7 @@ export default function Finder() {
 
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menu.items} onClose={() => setMenu(null)} />}
       {previewNode && lap.client && lap.activeVolume && (
-        <PreviewModal client={lap.client} volume={lap.activeVolume} node={previewNode} onClose={() => setPreviewNode(null)} />
+        <PreviewModal client={lap.client} volume={lap.activeVolume} node={previewNode} onClose={() => setPreviewNode(null)} onSaved={() => lap.refreshTree()} />
       )}
     </div>
   )

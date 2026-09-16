@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Download } from 'lucide-react'
+import { X, Download, Wand2, Save } from 'lucide-react'
 // Core build + a curated language set (scripting/security-tool focused)
 // instead of the full ~190-language bundle, to keep the app light.
 import hljs from 'highlight.js/lib/core'
@@ -53,9 +53,10 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import type { FsNode, Volume } from '../types'
 import type { GitHubClient } from '../lib/github'
-import { base64ToBytes, formatBytes, guessMime } from '../lib/binary'
+import { base64ToBytes, bytesToBase64, formatBytes, guessMime } from '../lib/binary'
 import { downloadFile } from '../lib/zip'
 import { categoryFor, extOf, isTextLike } from '../lib/extensions'
+import { canFormat, formatCode } from '../lib/format'
 
 type Kind = 'markdown' | 'code' | 'image' | 'pdf' | 'unsupported'
 
@@ -70,13 +71,18 @@ function kindFor(name: string): Kind {
 }
 
 export default function PreviewModal({
-  client, volume, node, onClose,
-}: { client: GitHubClient; volume: Volume; node: FsNode; onClose: () => void }) {
+  client, volume, node, onClose, onSaved,
+}: { client: GitHubClient; volume: Volume; node: FsNode; onClose: () => void; onSaved?: () => void }) {
   const [content, setContent] = useState<string | null>(null)
+  const [originalContent, setOriginalContent] = useState<string | null>(null)
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [formatError, setFormatError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const kind = kindFor(node.name)
+  const formattable = (kind === 'code' || kind === 'markdown') && canFormat(node.name)
+  const dirty = content != null && originalContent != null && content !== originalContent
 
   useEffect(() => {
     let cancelled = false
@@ -91,7 +97,9 @@ export default function PreviewModal({
           setDataUrl(`data:${guessMime(node.name)};base64,${base64}`)
         } else if (kind === 'markdown' || kind === 'code') {
           const bytes = base64ToBytes(base64)
-          setContent(new TextDecoder('utf-8', { fatal: false }).decode(bytes))
+          const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes)
+          setContent(text)
+          setOriginalContent(text)
         }
       } catch (err: any) {
         if (!cancelled) setError(err?.message ?? String(err))
@@ -128,6 +136,35 @@ export default function PreviewModal({
     ? DOMPurify.sanitize(marked.parse(content, { async: false }) as string)
     : null
 
+  async function handleFormat() {
+    if (content == null) return
+    setFormatError(null)
+    try {
+      const formatted = await formatCode(node.name, content)
+      setContent(formatted)
+    } catch (err: any) {
+      // Prettier throws on genuine syntax errors — surface it rather than
+      // silently doing nothing or corrupting the file.
+      setFormatError(err?.message ?? 'Could not format this file — it may have a syntax error.')
+    }
+  }
+
+  async function handleSave() {
+    if (content == null || !node.sha) return
+    setSaving(true)
+    setFormatError(null)
+    try {
+      const base64 = bytesToBase64(new TextEncoder().encode(content))
+      await client.uploadFile(volume, node.path, base64, `Format ${node.name}`)
+      setOriginalContent(content)
+      onSaved?.()
+    } catch (err: any) {
+      setFormatError(err?.message ?? String(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
@@ -140,6 +177,25 @@ export default function PreviewModal({
             <div className="text-[11px] text-mac-text-5">{node.size != null ? formatBytes(node.size) : ''}</div>
           </div>
           <div className="flex items-center gap-1">
+            {formattable && (
+              <button
+                onClick={handleFormat}
+                title="Format with Prettier"
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-mac-text-3 hover:bg-mac-surface-hover"
+              >
+                <Wand2 size={14} /> Format
+              </button>
+            )}
+            {dirty && (
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                title="Save formatted version back to GitHub"
+                className="flex items-center gap-1 rounded-md bg-mac-accent px-2 py-1 text-xs font-medium text-white hover:brightness-90 disabled:opacity-50"
+              >
+                <Save size={14} /> {saving ? 'Saving…' : 'Save'}
+              </button>
+            )}
             <button
               onClick={() => downloadFile(client, volume, node)}
               title="Download"
@@ -156,6 +212,9 @@ export default function PreviewModal({
         <div className="overflow-auto bg-mac-surface-row p-0">
           {loading && <div className="p-8 text-center text-sm text-mac-text-5">Loading…</div>}
           {error && <div className="p-8 text-center text-sm text-mac-danger">{error}</div>}
+          {formatError && (
+            <div className="border-b border-mac-divider bg-mac-danger-bg px-4 py-2 text-xs text-mac-danger">{formatError}</div>
+          )}
 
           {!loading && !error && kind === 'image' && dataUrl && (
             <div className="flex items-center justify-center bg-[repeating-conic-gradient(#eee_0%_25%,white_0%_50%)] bg-[length:16px_16px] p-6">
