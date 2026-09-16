@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --color-mac-bg: #eceef1;
+  --color-mac-sidebar: #e8e8ec;
+  --color-mac-accent: #0a84ff;
+  --color-mac-border: #d3d5da;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--ui-font-size, 14px);
+  -webkit-font-smoothing: antialiased;
+  background: var(--wallpaper, linear-gradient(160deg, #6f9fd8 0%, #4d6fa6 45%, #33477a 100%));
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.22); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.traffic-dot { width: 12px; height: 12px; border-radius: 999px; }
+
+.finder-window {
+  backdrop-filter: blur(20px);
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-pop-in { animation: pop-in 0.14s ease-out; }
+
+.icon-tile {
+  user-select: none;
+}
+.icon-tile.selected {
+  background: color-mix(in srgb, var(--color-mac-accent) 18%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--color-mac-accent) 50%, transparent);
+}
+.icon-tile:hover:not(.selected) {
+  background: rgba(0, 0, 0, 0.04);
+}
+.icon-tile.cut {
+  opacity: 0.45;
+}
+
+.drag-over-target {
+  outline: 2px solid var(--color-mac-accent);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--color-mac-accent) 12%, transparent);
+}
